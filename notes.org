@@ -19,3 +19,5 @@ Case 1: if number is not perfect square : no. of factors /2.
 Case 2: if number is perfect square, then, number of factors+1/2.
 
 If number is perfect square and no of distinuished factors = No of factors -1/2
+
+HCF : find the prime factors and then take the common prime factors!

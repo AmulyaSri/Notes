@@ -1,1 +1,6 @@
 
+How to update emacs org-mode 7.9 to 8.0?
+
+I downloaded the org-mode from git and followed the instructions from the following url.
+http://tonyballantyne.com/tech/ubuntu-emacs-org-mode-setup/
+

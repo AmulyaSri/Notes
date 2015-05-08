@@ -4,3 +4,18 @@ How to update emacs org-mode 7.9 to 8.0?
 I downloaded the org-mode from git and followed the instructions from the following url.
 http://tonyballantyne.com/tech/ubuntu-emacs-org-mode-setup/
 
+Notes: 
+
+1. Number system
+
+n = a^p.b^q.c^r
+No of factors: (p+1). (q+1).(r+1)
+No of odd factors: if p is even prime number and q and r are odd prime numbers then, 
+(q+1) .(r+1) = no of odd factors
+No of even factors = total factors - no of odd factors
+
+Possible no of ways which we can express number as a product of 2numbers : 
+Case 1: if number is not perfect square : no. of factors /2.
+Case 2: if number is perfect square, then, number of factors+1/2.
+
+If number is perfect square and no of distinuished factors = No of factors -1/2

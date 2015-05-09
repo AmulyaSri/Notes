@@ -1,0 +1,217 @@
+#+Title: Documentation of whatever I learn in COQ
+#+Author: Amulya Sri Pulijala
+#+Date: 2015-05-02
+#+Email: amulya@vlabs.ac.in
+
+* Introduction
+
++ Theorem/... to state a theorem in COQ. 
++ split : whenever there is a
+biimplication, we want to break it into 2 implications. in other
+words, we have to prove implications from both directions. in such
+cases we use split.
+split can be used in conjunction, bi implications.if etc.
+
+Then it presents first sub goal. 
+whenever there is a goal which needs proof of 2 or more goals..try split.
+
++ intros: take the hypothesis and put it in context. whenever there is
+  an implication.. we can use intros
+
+ whenever we have implication or for all, intros is the one which we
+  should use. intros take hypothesis  and put it in context. !!!
++ destruct H :
+
+   split is different from destruct ? how?? 
+
+   destruct H. 
+   destruct H.
+
+   instead of this, we can write, 
+   destruct H as [x [H1 H2]].
+
++ split; assumption : means... split and for each branch you get,
+  apply assumption
+ === split.
+     assumption.
+     assumption.
+
+
+#+begin_src COQ
+
+Theorem frobenius (A: Set) (p : A-> Prop) (q : Prop):
+   (exists x: A, q /\ p x) <-> (q /\ exists x : A, p x).
+
+Proof.
+   split.
+   intros [y [H1 H2]].
+   split.
+   assumption.
+   exists y.
+   assumption.
+   intros [x [H1 H2]].
+   exists H1.
+   split.
+   assumption.
+   assumption.
+Qed.
+#+end_src
+
+
++ Check <NAME> : to check the theorem.
++ Print <NAME>: to print!
+
+
+** Software Foundations book
+
+After doing couple of proof's, I started reading Software Foundations
+book religiously.
+
+
+*** Inductive type:
+
+The following says COQ that we are defining new set of data values.
+#+begin_src COQ 
+Inductive day : Type :=
+  | monday : day
+  | tuesday : day
+  | wednesday : day
+  | thursday : day
+  | friday : day
+  | saturday : day
+  | sunday: day.
+#+end_src
+
+Having defined this, we can write, functions as follows:
+
+#+begin_src coq
+Definition next_weekday (d: day) :day := 
+   match d with
+   | monday => tuesday
+   | tuesday => wednesday
+   | wednesday => thursday
+   | thursday => friday
+   | friday => saturday 
+   | saturday => sunday
+   | sunday => monday
+   end.
+Definition day_number (d: day) : Int :=
+   match d with
+    | monday => 1
+    | tuesday =>2
+    | wednesday => 3
+    | thursday => 4
+    |friday =>5
+    | saturday =>6
+    | sunday => 7
+    end.
+#+end_src
+
+I got the following error for the function day_number i wrote. as part
+of this function, i wish to return a number for every day.
+#+begin_src 
+Error: The reference Int was not found in the current environment.
+#+end_src
+
+Then I imported module Int, as follows
+#+begin_src 
+Module type Int.
+#+end_src
+
+
+No use...
+I then tried to use Numbers module.
+still no use.
+
+I tried to import ZArith and work. But atlast, I could solve this, by using, nat! 
+
+#+begin_src COQ
+Module Type Numbers.
+Definition day_number (d: day) :nat :=
+   match d with
+    | monday => 1
+    | tuesday =>2
+    | wednesday => 3
+    | thursday => 4
+    |friday =>5
+    | saturday =>6
+    | sunday => 7
+    end.
+#+end_src
+
+To evaluate the correctness of the function, I wrote
+#+begin_src 
+Eval compute in (next_weekday friday).
+#+end_src
+
+and got output as
+#+begin_example
+Warning: query commands should not be inserted in scripts
+     = saturday
+     : day
+#+end_example
+
+Same thing with other example.
+#+begin_src 
+Eval compute in (day_number thursday).
+#+end_src
+
+#+begin_src 
+query commands should not be inserted in scripts
+     = 4
+     : nat
+#+end_src 
+
+** Excercise
+
+#+begin_src 
+Deefinition neg (b:bool):bool :=
+   match b with
+    | false => true
+    | true => false
+   end.
+Definition orb(b1: bool) (b2: bool) : bool :=
+  match b1 with 
+   | false => true
+   | true => (neg b2) 
+   end.
+
+Example test_nandb1: (nandb true false) = true.
+Proof. reflexivity. Qed.
+
+Example test_nandb2: (nandb false false) = true.
+Proof. reflexivity. Qed.
+Example test_nandb3: (nandb false true) = true.
+Proof. reflexivity. Qed.
+Example test_nandb4: (nandb true true) = false.
+Proof. reflexivity. Qed.
+
+
+#+end_src
+
+
+* Excercise 2 :
+#+begin_src 
+Definition andhel (b2:bool)(b3:bool) :=
+   match b2 with
+    | true => b3
+    | false => false
+   end.
+Definition andb3(b1: bool) (b2: bool) (b3: bool) : bool :=
+  match b1 with 
+   | true => (andhel b2 b3)
+   | false => false 
+   end.
+  
+
+Example test_andb31: (andb3 true true true) = true.
+Proof. reflexivity. Qed.
+
+Example test_andb32: (andb3 false true true) = false.
+Proof. reflexivity. Qed.
+Example test_andb33: (andb3 true false true) = false.
+Proof. reflexivity. Qed.
+Example test_andb34: (andb3 true true false) = false.
+Proof. reflexivity. Qed.
+#+end_src
+

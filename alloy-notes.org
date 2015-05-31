@@ -1,0 +1,156 @@
+* Introduction
+
+This code is from the paper "Simple Cross-Site Attack Prevention", Florian Kerschbaum, SAP Research
+
+** Website
+A website is declared as site.
+#+begin_src 
+sig site {}
+#+end_src
+
+** Safe website
+All the Safe web sites protected by gateway. The code below describes teh signature of safe_site. It extends site.
+ 
+#+begin_src 
+sig safe_site extends site {}
+#+end_src
+
+** Web page
+A web page consists of source, input, destination and a link(reference). Each of these are explained as follows:
+
+
+ source :: A web page originates from a web server hosting the site
+ input :: Here, it refers to source of input and not the actual contents (not scripts/markup)
+ 			  "Input can either originate from the linkâ€™s source or the page itself, i.e. the user enters it into the browser"
+ dest :: Destination page when a link is clicked
+ link :: A link has reference to a web page
+
+#+begin_src 
+sig page {
+	source : site,
+	input : lone page,
+	dest : lone site,
+	link : lone page
+}
+#+end_src
+
+** Browser 
+ Browser is modeled with the fields, initial state, pages and
+ cookies. Browser is composed of set of pages and cookies. Cookies
+ serve as reference to a site.
+#+begin_src 
+
+sig browser {
+	initial : set page,
+	pages : set page,
+	cookies : set site
+}
+#+end_src
+
+** Safe browser 
+Safe browser is assumed to start with safe state. 
+Assumption to safe state : 
+ To start with, if a page is in the initial set of pages, it means no input of any sort was received. Hence it is in a safe state. 
+Hence, this assumption is modeled as =fact=.
+
+#+begin_src 
+sig safe_browser extends browser {}
+fact {
+	all p : page, b : browser | {
+		p in b.initial => no p.input
+	}
+}
+#+end_src
+
+The author made the assumption that there are no cookies lost if browser is in safe state.
+
+#+begin_src 
+fact {
+	all b : browser {
+		b in browser - safe_browser=> no b.cookies
+	}
+}
+#+end_src
+
+** User's click transition
+
+The source page is in browser history. The destination site and page
+are the target of source . If the destination page is from a protected
+website, referer and cookie are checked.
+
+#+begin_src 
+pred click [b : browser, p1 : page, p2 : page]{
+	p1 in (b.pages + b.initial)
+	p2.source = p1.dest
+	p2 = p1.link
+	p2.input = p1 ||p2.input = p2 ||no p2.input
+	p2 in b.pages
+	p2.source in safe_site => {
+		// check referer
+		b in safe_browser=> { some p2.input=> p1.source = p2.source }
+		// check cookie
+		some c : site | c in b.cookies &&c = p2.source
+	}
+}
+#+end_src
+
+// ensure state transitions
+fact {
+	all p1 : page | {
+		some b : browser | p1 in b.initial || some b : browser, p2 : page | click[b, p2, p1]
+	}
+}
+
+** Cross-site attack :
+
+ There should not be an instance for the following scenario:
+ +  Let p be a page and b be a browser such that p is in b's history and 
+ +  consider some site which can provide input to p,
+ +  the site of page p is not equal to the site which provided input
+
+#+begin_src 
+assert xss {
+	no p : page, b : browser
+	| p in b.pages
+	&& some p.input.source
+	&& p.source != p.input.source
+}
+#+end_src
+
+
+** Pseudo Cross-site attack : 
+ There is no cross-site attack to a protected site. In addition to the
+ above rules is that, if the page p originated from a safe site (which
+ does not accept input from other sites), then cross site attacks will
+ not happen.
+
+#+begin_src 
+assert noxss {
+	no p : page, b : browser
+	| p in b.pages
+	&& some p.input.source
+	&& p.source != p.input.source
+	&& p.source in safe_site
+}
+#+end_src
+
+** Functionality of protected site
+ A safe site, which follows guidelines described by author, can still
+ accept inputs without breaking the web (though not directly accepting
+ inputs from other sites)
+
+#+begin_src 
+assert script {
+	no p : page, b : browser
+	| p in b.pages
+	&& p.source in safe_site
+	&& some p.input
+}
+#+end_src
+
+* Sample inputs given
+check xss for 2 site, 10 page, 6 browser
+
+check noxss for 2 site, 8 page, 3 browser
+
+check script for 4 site, 2 page, 4 browser
